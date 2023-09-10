@@ -18,4 +18,4 @@ spec:
               periodSeconds: 6
             env:
               - name: SITE_NAME
-                value: "Population Stats Prod 3"
+                value: "SDS demo Prod 3"
