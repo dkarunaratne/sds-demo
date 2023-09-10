@@ -17,6 +17,16 @@ steps:
       set -ex
       gcloud artifacts sbom export \
         --uri=us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}
+  # Upload VEX file
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: bash
+    args:
+    - -c
+    - |
+      set -ex
+      gcloud artifacts vulnerabilities load-vex /
+        --source vex.json /
+        --uri us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}
   # Create release in Google Cloud Deploy using the digest of the newly built image
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
