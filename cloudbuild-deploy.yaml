@@ -3,11 +3,11 @@
 steps:
   # Build and tag using commit sha
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}', '-f', 'Dockerfile']
+    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}', '-f', 'Dockerfile']
     dir: 'app'
   # Push the container image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}']
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}']
   # Generate SBOM for the image
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
@@ -16,7 +16,7 @@ steps:
     - |
       set -ex
       gcloud artifacts sbom export \
-        --uri=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
+        --uri=us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}
   # Create release in Google Cloud Deploy using the digest of the newly built image
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: bash
@@ -25,17 +25,17 @@ steps:
     - |
       set -ex
       gcloud artifacts docker images describe \
-        'us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}' \
+        'us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}' \
         --format 'value(image_summary.digest)' > digest
       gcloud deploy releases create rel-${SHORT_SHA} \
-        --delivery-pipeline pop-stats-pipeline \
+        --delivery-pipeline sds-demo-pipeline \
         --region us-central1 \
         --annotations commitId=${REVISION_ID} \
-        --images pop-stats=us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}@$(cat digest)
+        --images sds-demo=us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}@$(cat digest)
       while :
       do
         STATE=$(gcloud deploy rollouts describe rel-${SHORT_SHA}-to-staging-0001 \
-        --delivery-pipeline pop-stats-pipeline \
+        --delivery-pipeline sds-demo-pipeline \
         --region us-central1 \
         --release rel-${SHORT_SHA} \
         --format 'value(state)')
@@ -47,6 +47,6 @@ steps:
        sleep 5
       done
 images:
-- us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:${COMMIT_SHA}
+- us-central1-docker.pkg.dev/$PROJECT_ID/sds-demo/sds-demo:${COMMIT_SHA}
 options:
   requestedVerifyOption: VERIFIED

@@ -1,10 +1,10 @@
 apiVersion: skaffold/v4beta4
 kind: Config
 metadata:
-  name: pop-stats
+  name: sds-demo
 build:
   artifacts:
-  - image: pop-stats
+  - image: sds-demo
     context: app
     docker:
       dockerfile: Dockerfile
@@ -27,11 +27,11 @@ verify:
       REQUEST_COUNT=100
       for _ in $(seq $REQUEST_COUNT)
       do
-        wget http://pop-stats:8080 -O /dev/null
+        wget http://sds-demo:8080 -O /dev/null
       done
 portForward:
 - resourceType: deployment
-  resourceName: pop-stats
+  resourceName: sds-demo
   port: 8080 
   localPort: 8080
 profiles:
