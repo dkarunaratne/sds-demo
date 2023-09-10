@@ -6,7 +6,7 @@ gkePolicy:
         rules:
         - attestationSource:
             containerAnalysisAttestationProjects:
-            - projects/project-id-here
+            - projects/damith-sds
           configBasedBuildRequired: true
           trustedBuilder: GOOGLE_CLOUD_BUILD
     displayName: GKE required checks
