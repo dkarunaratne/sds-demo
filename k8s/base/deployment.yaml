@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pop-stats
+  name: sds-demo
   labels:
-    app: pop-stats
+    app: sds-demo
 spec:
   selector:
     matchLabels:
-      app: pop-stats
+      app: sds-demo
   replicas: 1
   minReadySeconds: 6
   strategy:
@@ -18,11 +18,11 @@ spec:
   template:
     metadata:
       labels:
-        app: pop-stats
+        app: sds-demo
     spec:
       containers:
-      - image: pop-stats
-        name: pop-stats
+      - image: sds-demo
+        name: sds-demo
         resources:
           requests:
             memory: "100Mi"

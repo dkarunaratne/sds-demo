@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pop-stats
+  name: sds-demo
   labels:
     env: prod1
 spec:
@@ -9,7 +9,7 @@ spec:
   template:
     spec:
       containers:
-          - name: pop-stats
+          - name: sds-demo
             livenessProbe:
               httpGet:
                 path: /h

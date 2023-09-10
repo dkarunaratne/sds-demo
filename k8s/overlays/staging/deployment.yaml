@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pop-stats
+  name: sds-demo
   labels:
     env: staging
 spec:
@@ -9,7 +9,7 @@ spec:
   template:
     spec:
       containers:
-          - name: pop-stats
+          - name: sds-demo
             livenessProbe:
               httpGet:
                 path: /h
@@ -18,4 +18,4 @@ spec:
               periodSeconds: 15
             env:
               - name: SITE_NAME
-                value: "Population Stats Staging"
+                value: "SDS Demo Staging"

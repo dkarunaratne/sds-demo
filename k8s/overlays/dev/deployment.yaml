@@ -1,14 +1,14 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pop-stats
+  name: sds-demo
   labels:
     env: test
 spec:
   template:
     spec:
       containers:
-      - name: pop-stats
+      - name: sds-demo
         env:
           - name: SITE_NAME
-            value: "Population Stats Test"
+            value: "SDS Demo"
