@@ -4,7 +4,6 @@ This repo is a fork of https://github.com/nateaveryg/pop-kustomize which is mean
 setting up a project in GCP that follows devops best practices.
 
 The demo will be used to display:
-- [x] Cloud workstations
 - [x] GCB triggering
 - [x] Build and push to AR
 - [x] Cloud Deploy deploy to test
@@ -16,7 +15,6 @@ The demo will be used to display:
 - [x] Cloud Deploy canary deployment w/ verification
 - [x] Cloud Deploy with parallel deployment
 - [x] Binauthz gating of deployment
-- [x] Local development w/ minikube
 
 ## Setup tutorial
 
