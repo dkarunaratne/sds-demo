@@ -1,0 +1,39 @@
+{
+    "document": {
+      "csaf_version": "2.0",
+      "lang": "en-US",
+      "publisher": {
+        "name": "SDS Demo VEX",
+        "namespace": "https://sds-demo.com"
+      },
+      "title": "Vex document 1.1"
+    },
+    "product_tree": {
+      "branches": [
+        {
+          "name": "https://us-central1-docker.pkg.dev/damith-sds/sds-demo/sds-demo",
+          "product": {
+            "name": "SDS Demo App",
+            "product_id": "sds-demo"
+          }
+        }
+      ]
+    },
+    "vulnerabilities": [
+      {
+        "cve": "CVE-2022-40897",
+        "product_status": {
+          "known_affected": [
+            "sds-demo"
+          ]
+        },
+        "notes": [
+          {
+            "category": "description",
+            "text": "Setuptools library will be updated to >= v65.5.1 and rebuilt to remedaite the issue",
+            "title": "CVE description"
+          }
+        ]
+      }
+    ]
+  }
