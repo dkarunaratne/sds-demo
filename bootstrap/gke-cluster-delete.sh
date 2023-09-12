@@ -8,12 +8,15 @@ if [[ -z "${PROJECT_ID}" ]]; then
 fi
 # sets the current project for gcloud
 gcloud config set project $PROJECT_ID
-# Test cluster
-echo "Deleting testcluster..."
-gcloud container clusters delete testcluster --region "us-central1" --async
 # Staging cluster
 echo "Deleting stagingcluster..."
 gcloud container clusters delete stagingcluster --region "us-central1" --async
-# Prod cluster
-echo "Deleting prodcluster..."
-gcloud container clusters delete prodcluster --region "us-central1" --async
+# Prod cluster 1
+echo "Deleting prodcluster1..."
+gcloud container clusters delete prodcluster1 --region "us-central1" --async
+# Prod cluster 2
+echo "Deleting prodcluster2..."
+gcloud container clusters delete prodcluster2 --region "europe-west1" --async
+# Prod cluster 2
+echo "Deleting prodcluster3..."
+gcloud container clusters delete prodcluster3 --region "asia-northeast1" --async

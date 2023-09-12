@@ -1,0 +1,17 @@
+gkePolicy:
+  checkSets:
+  - checks:
+    - displayName: "SDS demo SLSA check"
+      imageAllowlist:
+        # Only allow images from the SDS demo repo
+        allowPattern: "us-central1-docker.pkg.dev/damith-sds/sds-demo/**"
+      slsaCheck:
+        rules:
+        - attestationSource:
+            containerAnalysisAttestationProjects: "projects/damith-sds"
+          # Require that images were built using a checked-in top-level build config file
+          configBasedBuildRequired: true
+          trustedBuilder: GOOGLE_CLOUD_BUILD
+          # Repo the build was triggered from
+          trustedSourceRepoPatterns: "github.com/dkarunaratne/sds-demo"
+    displayName: "SDS demo SLSA check"
