@@ -31,7 +31,7 @@
           {
             "category": "description",
             "text": "Setuptools library will be updated to >= v65.5.1 and rebuilt to remedaite the issue",
-            "title": "CVE description"
+            "title": "Triage description"
           }
         ]
       }

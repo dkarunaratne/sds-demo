@@ -1,20 +1,22 @@
 # Demo: Devops Best Practices
 
-This repo is a fork of https://github.com/nateaveryg/pop-kustomize which is meant to demonstrate
-setting up a project in GCP that follows devops best practices.
+This repo is a fork of https://github.com/bobcatfish/ops202-cloud-next-23 which is meant to demonstrate
+setting up a project in GCP that follows DevOps best practices.
 
 The demo will be used to display:
 - [x] GCB triggering
 - [x] Build and push to AR
+- [x] Provenance generation
+- [x] Image scanning
+- [x] SBOM generation
+- [x] VEX upload to AR
+- [x] Cloud Build security insights
 - [x] Cloud Deploy deploy to test
 - [x] Cloud Deploy promotion across environments
-- [x] Image scanning
-- [x] Cloud Build security insights
-- [x] Provenance generation
 - [x] Cloud Deploy security insights
 - [x] Cloud Deploy canary deployment w/ verification
 - [x] Cloud Deploy with parallel deployment
-- [x] Binauthz gating of deployment
+- [x] BinAuthz cotinuous validation with SLSA policy
 
 ## Setup tutorial
 
@@ -62,6 +64,53 @@ Create the GKE clusters:
 
 Verify that they were created in the [GKE UI](https://console.cloud.google.com/kubernetes/list/overview)
 
+## BinAuthz continuous validation
+
+### Update SLSA policy and bind to GKE
+
+Update the `slsa-policy.yaml` for your project and repos.
+
+Create the policy.
+
+```bash
+gcloud beta container binauthz policy create slsa-policy \
+    --platform=gke \
+    --policy-file=slsa-policy.yaml \
+    --project=POLICY_PROJECT_ID
+```
+
+Bind the slsa-policy to your GKE clusters.
+
+```bash
+gcloud beta container clusters update stagingcluster \
+    --location=us-central1 \
+    --binauthz-evaluation-mode=POLICY_BINDINGS \
+    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/slsa-policy \
+    --project=$PROJECT_ID \
+    --async
+
+gcloud beta container clusters update prodcluster1 \
+    --location=us-central1 \
+    --binauthz-evaluation-mode=POLICY_BINDINGS \
+    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/slsa-policy \
+    --project=$PROJECT_ID \
+    --async
+
+gcloud beta container clusters update prodcluster2 \
+    --location=europe-west1 \
+    --binauthz-evaluation-mode=POLICY_BINDINGS \
+    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/slsa-policy \
+    --project=$PROJECT_ID \
+    --async
+
+gcloud beta container clusters update prodcluster3 \
+    --location=asia-northeast1 \
+    --binauthz-evaluation-mode=POLICY_BINDINGS \
+    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/slsa-policy \
+    --project=$PROJECT_ID \
+    --async
+```
+
 ### Build up the pipeline
 
 ```bash
@@ -85,10 +134,6 @@ gcloud auth configure-docker us-central1-docker.pkg.dev
 docker push $IMAGE
 ```
 
-Already built:
-* Manual: us-central1-docker.pkg.dev/catw-next-2023/pop-stats/pop-stats@sha256:e28155703403617c67b6babb09d3877fcdc7ccc12b285bed0025066de04a18ff
-* Bug: us-central1-docker.pkg.dev/catw-next-2023/pop-stats/pop-stats@sha256:572f2b4112daaea1f698c55cab98d506bef3dbb5e26a91a4eae217c7be5e178a
-
 Creating releases
 
 ```bash
@@ -99,26 +144,10 @@ gcloud deploy releases create ${RELEASE} \
   --images pop-stats=$IMAGE
 ```
 
-#### 1. Just one cluster, with a canary
+#### 1. Staging environment with redundancy w/ multiple production targets and parallel deployment
 
 ```bash
-gcloud deploy apply --file clouddeploy-1.yaml --region=us-central1 --project=$PROJECT_ID
-```
-
-Need to push a canary deployment through or it will skip the first time
-
-#### 2. Redundancy w/ multiple production targets and parallel deployment
-
-```bash
-gcloud deploy apply --file clouddeploy-2.yaml --region=us-central1 --project=$PROJECT_ID
-```
-
-Try it out with the bad image.
-
-#### 3. Add staging environment
-
-```bash
-gcloud deploy apply --file clouddeploy-3.yaml --region=us-central1 --project=$PROJECT_ID
+gcloud deploy apply --file clouddeploy.yaml --region=us-central1 --project=$PROJECT_ID
 ```
 
 ### Setup a Cloud Build trigger to deploy on merge to main
@@ -185,7 +214,7 @@ Configure Cloud Build to run each time a change is pushed to the main branch. To
     * Setup PR triggering to run cloudbuild.yaml
 
 Open a PR to create a Cloud Deploy release and deploy it to the
-the `test` environment.  You can see the progress via the
+the `staging` environment.  You can see the progress via the
 [Google Cloud Deploy UI](https://console.cloud.google.com/deploy/delivery-pipelines).
 
 ## Promote the release
@@ -199,107 +228,6 @@ approval step in between).
 * View Cloud Build security insights via the Cloud Build history view: https://cloud.google.com/build/docs/view-build-security-insights
 * View Cloud Deploy security insights via the release artifacts view: https://cloud.google.com/deploy/docs/securing/security-insights
 
-## binauthz gating
-
-### Create binauthz policy
-
-```bash
-# customize the clouddeploy.yaml 
-sed -i "s/project-id-here/${PROJECT_ID}/" binauthz-policy.yaml
-# create the policy
-gcloud beta container binauthz policy create build-as-code \
-    --platform=gke \
-    --policy-file=binauthz-policy.yaml \
-    --project=$PROJECT_ID
-gcloud beta container clusters update prodcluster1 \
-    --location=us-central1 \
-    --binauthz-evaluation-mode=POLICY_BINDINGS_AND_PROJECT_SINGLETON_POLICY_ENFORCE \
-    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/build-as-code \
-    --project=$PROJECT_ID
-gcloud beta container clusters update prodcluster2 \
-    --location=europe-west1 \
-    --binauthz-evaluation-mode=POLICY_BINDINGS_AND_PROJECT_SINGLETON_POLICY_ENFORCE \
-    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/build-as-code \
-    --project=$PROJECT_ID
-gcloud beta container clusters update prodcluster3 \
-    --location=asia-northeast1 \
-    --binauthz-evaluation-mode=POLICY_BINDINGS_AND_PROJECT_SINGLETON_POLICY_ENFORCE \
-    --binauthz-policy-bindings=name=projects/$PROJECT_ID/platforms/gke/policies/build-as-code \
-    --project=$PROJECT_ID
-```
-
-### Make sure it works
-
-The binauthz policy should prevent the following scenarios from succeeding:
-* Pushing an image built locally
-* Building an image using an inline cloudbuild.yaml
-
-Build and push an image locally:
-
-```bash
-# build the image
-export LAZY=lazy-$(date +%s)
-export IMAGE="us-central1-docker.pkg.dev/$PROJECT_ID/pop-stats/pop-stats:$LAZY"
-docker build app/ -t $IMAGE -f app/Dockerfile
-
-# push the image
-gcloud auth configure-docker us-central1-docker.pkg.dev
-docker push $IMAGE
-
-# start a pod in a production cluster that uses the image
-gcloud container clusters get-credentials prodcluster1 --region us-central1 --project $PROJECT_ID
-kubectl run sneakypod --image=${IMAGE}
-```
-
-You can also try using an inline cloudbuild.yaml by creating a manual trigger
-using the same cloudbuild.yaml in this repo.
-
-You will see the audit logs show up several hours later:
-
-```bash
-gcloud logging read \
-     --order="desc" \
-     --freshness=7d \
-     --project=$PROJECT_ID \
-    'logName:"binaryauthorization.googleapis.com%2Fcontinuous_validation" "build-as-code"'
-```
-
-## Tear down
-
-To remove the three running GKE clusters, run:
-```bash
-. ./bootstrap/gke-cluster-delete.sh
-```
-
-## Local dev (optional)
-
-To run this app locally, start minikube:
-```bash 
-minikube start
-```
-
-Make sure minikube is the current context:
-```bash
-kubectl config current-context
-minikube update-context
-```
-
-From the pop-kustomize directory, run:
-```bash
-skaffold dev
-```
-
-The default skaffold settings use the "dev" Kustomize overlay. Once running, you can make file changes and observe the rebuilding of the container and redeployment. Use Ctrl-C to stop the Skaffold process.
-
-To test the staging overlays/profile run:
-```bash
-skaffold dev --profile staging
-```
-
-To test the staging overlays/profile locally, run:
-```bash
-skaffold dev --profile prod
-```
 ## About the Sample app - Population stats
 
 Simple web app that pulls population and flag data based on country query.
